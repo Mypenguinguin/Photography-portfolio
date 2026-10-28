@@ -16,6 +16,7 @@
     const t = c && trip[c.trip];
     return c ? (t && t.title !== c.title ? `${c.title}, ${t.title}` : c.title) : '';
   };
+  S.journal = S.journal.filter((p) => col[p.collection]); // stories wait for their destination's photos
   const posts = [...S.journal].sort((a, b) => b.date.localeCompare(a.date));
   const postById = Object.fromEntries(posts.map((p) => [p.id, p]));
   const postCover = (p) => (byId[p.cover] ? p.cover : ((p.body.find((b) => b.photo) || {}).photo || col[p.collection].cover));

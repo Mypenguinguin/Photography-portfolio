@@ -9,8 +9,9 @@ window.SITE = {
   hero: {
     eyebrow: 'Travel Photography',
     title: 'Water, Light & Lanterns',
-    subtitle: 'Suzhou · Hangzhou · Shanghai — June 2026',
-    slides: ['dscf5939', 'dscf6180', 'dscf6375', 'dscf5976', 'dscf6277', 'dscf6404'],
+    subtitle: 'China · Japan — four journeys, 2025 – 2026',
+    // Missing ids (e.g. a trip not added yet) are skipped automatically
+    slides: ['dscf5939', 'jp26-dscf5349', 'cn26-dscf8068', 'jp25-dscf6188', 'dscf6375', 'jp26-dscf9409', 'dscf6180', 'cn26-dscf7323'],
   },
 
   // Facts the chat assistant can share with visitors.
@@ -23,7 +24,7 @@ window.SITE = {
     // 'https://blooblens-chat.yourname.workers.dev'. Leave empty to answer from site content only.
     endpoint: '',
     greeting: 'Hi! I can tell you about the trips, places and photos on this site. What would you like to know?',
-    suggestions: ['Where have you travelled?', 'Show me night shots', 'What camera do you use?', 'Can I use your photos?'],
+    suggestions: ['Where have you travelled?', 'Show me cherry blossom', 'What camera do you use?', 'Can I use your photos?'],
   },
 
   aboutPhoto: 'dscf6000',
@@ -91,6 +92,26 @@ window.SITE = {
 
   // Journal posts. 'cover' is the header photo; body items are paragraphs (strings) or { photo: 'id' }.
   journal: [
+    { id: 'sakura-season', collection: 'jp26-hokuriku', cover: 'jp26-dscf5349', date: '2026-04-06', title: 'Chasing the Cherry Blossom',
+      excerpt: 'Three weeks following spring north through Japan, with a Grand Prix along the way.',
+      body: [
+        'The trip began in mid-March with plum blossom at Osaka Castle and bare cherry branches. By the time it reached Kyoto, the first weeping cherries in Maruyama Park were opening.',
+        { photo: 'jp26-dscf9317' },
+        'At the end of March came three days at Suzuka for the Japanese Grand Prix: panning shots through the esses and packed grandstands on race day.',
+        { photo: 'jp26-dscf3659' },
+        'Then the blossom took over. In Toyama, boats drifted along the Matsukawa River under a tunnel of cherry trees, and in Nagano the trees were in full bloom under clear blue mountain skies.',
+        { photo: 'jp26-dscf5757' },
+      ] },
+    { id: 'chengdu-chongqing', collection: 'cn26-chongqing', cover: 'cn26-dscf8068', date: '2026-01-26', title: 'Pandas, Neon and Karst',
+      excerpt: 'A winter week in Sichuan and Chongqing, from bamboo groves to a train through a building.',
+      body: [
+        'Chengdu started with the giant pandas: eating bamboo, napping on platforms and climbing trees. In the evening, Anshun Bridge glowed gold over the Jin River.',
+        { photo: 'cn26-dscf7323' },
+        'Chongqing is a city stacked up its hillsides. Hongyadong, the cliffside complex, lights up layer after layer at night, and the Liziba monorail runs straight through an apartment block.',
+        { photo: 'cn26-dscf8068' },
+        'A day out to Wulong brought a complete change of scene: limestone arches, misty gorges and an old post station far below the Three Natural Bridges.',
+        { photo: 'cn26-dscf8300' },
+      ] },
     { id: 'kansai-autumn', collection: 'jp25-nachi', cover: 'jp25-dscf6188', date: '2025-12-12', title: 'Late Autumn in Kansai',
       excerpt: 'Dawn tuna auctions, sacred waterfalls and the last red maples of the year.',
       body: [
