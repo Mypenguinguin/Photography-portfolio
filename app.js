@@ -769,6 +769,16 @@
     toastTimer = setTimeout(() => t.classList.remove('is-on'), 2200);
   }
 
+  // Hooks for chat.js
+  window.portfolio = {
+    openPhoto(id) {
+      const i = P.findIndex((p) => p.id === id);
+      if (i >= 0) lightbox.open(P, i);
+    },
+    placeOf,
+    fmtDate,
+  };
+
   /* ---------- Boot ---------- */
   initHero();
   initStats();

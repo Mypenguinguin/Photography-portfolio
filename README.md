@@ -22,6 +22,13 @@ python tools/add_photos.py "D:/Trips/Tokyo" --collection tokyo
 For a new trip, first add a collection to `collections` in `site.js`
 (`id`, `title`, `native`, `dates`, `cover`, `blurb`). Then add photos with that `id`.
 
+## Chat assistant
+
+`chat.js` adds the "Ask" button. It answers from the site's content (trips, destinations,
+photos, gear, contact) with no setup. To get AI answers from Claude, follow
+`chat-worker/README.md`, then put the Worker address in `site.js` → `chat.endpoint`.
+The suggested questions, greeting, gear and photo-usage text are in `site.js` too.
+
 ## Preview locally
 
 ```

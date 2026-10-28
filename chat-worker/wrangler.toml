@@ -1,0 +1,10 @@
+name = "blooblens-chat"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+# Pages allowed to call the chat. Add your own domain here if you move the site.
+ALLOWED_ORIGINS = "https://mypenguinguin.github.io,http://localhost:8765"
+
+# The Anthropic API key is a secret, set by the GitHub Action (or `npx wrangler secret put ANTHROPIC_API_KEY`).

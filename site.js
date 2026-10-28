@@ -13,6 +13,19 @@ window.SITE = {
     slides: ['dscf5939', 'dscf6180', 'dscf6375', 'dscf5976', 'dscf6277', 'dscf6404'],
   },
 
+  // Facts the chat assistant can share with visitors.
+  gear: 'Fujifilm X-T10',
+  editing: 'Adobe Lightroom Classic',
+  usage: 'Want to use, license or print one of these photos? Get in touch by email and let me know which photo and how you would like to use it.',
+
+  chat: {
+    // Address of the Cloudflare Worker in chat-worker/ once deployed, e.g.
+    // 'https://blooblens-chat.yourname.workers.dev'. Leave empty to answer from site content only.
+    endpoint: '',
+    greeting: 'Hi! I can tell you about the trips, places and photos on this site. What would you like to know?',
+    suggestions: ['Where have you travelled?', 'Show me night shots', 'What camera do you use?', 'Can I use your photos?'],
+  },
+
   aboutPhoto: 'dscf6000',
   about:
     'I travel with a camera to slow down and look closer: at canals at dawn, lanterns in the rain and ' +
