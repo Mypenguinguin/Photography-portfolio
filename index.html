@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Travel Photography</title>
+  <meta name="description" content="A travel photography portfolio and journal.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;1,300&family=Oswald:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="progress" aria-hidden="true"><span></span></div>
+  <div class="cursor" aria-hidden="true"><span class="cursor-label"></span></div>
+  <div class="curtain" aria-hidden="true"></div>
+
+  <header class="header">
+    <a class="brand" href="#/" data-cursor>
+      <span class="brand-name" data-site="name"></span>
+      <span class="brand-tag" data-site="tagline"></span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="#/portfolio" data-cursor>Portfolio</a>
+      <a href="#/destinations" data-cursor>Destinations</a>
+      <a href="#/journal" data-cursor>Journal</a>
+      <a href="#/about" data-cursor>About</a>
+    </nav>
+    <button class="menu-btn" aria-label="Open menu" aria-expanded="false" data-cursor>
+      <span></span><span></span>
+    </button>
+  </header>
+
+  <!-- Full-screen menu -->
+  <div class="menu" aria-hidden="true">
+    <div class="menu-preview"></div>
+    <div class="menu-inner">
+      <p class="eyebrow">Explore</p>
+      <ul class="menu-links"></ul>
+      <div class="menu-foot">
+        <a class="menu-mail" data-site-href="mailto" data-cursor></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <main class="view view-home" data-view="home">
+    <section class="hero" id="top">
+      <div class="hero-slides"></div>
+      <div class="hero-shade"></div>
+      <div class="hero-content">
+        <p class="eyebrow reveal" data-site="hero.eyebrow"></p>
+        <h1 class="hero-title"></h1>
+        <p class="hero-sub reveal" data-site="hero.subtitle"></p>
+        <div class="hero-actions reveal">
+          <a class="btn" href="#/portfolio" data-cursor>View portfolio</a>
+          <a class="btn btn-ghost" href="#/journal" data-cursor>Read the journal</a>
+        </div>
+      </div>
+      <div class="hero-foot">
+        <div class="hero-caption"><span class="hero-caption-title"></span><span class="hero-caption-place"></span></div>
+        <div class="hero-dots" role="tablist" aria-label="Slides"></div>
+      </div>
+      <a class="scroll-cue" href="#/destinations" aria-label="Scroll down" data-cursor><span></span></a>
+    </section>
+
+    <section class="stats">
+      <div class="stat"><span class="stat-num" data-count="countries">0</span><span class="stat-label">Countries</span></div>
+      <div class="stat"><span class="stat-num" data-count="trips">0</span><span class="stat-label">Trips</span></div>
+      <div class="stat"><span class="stat-num" data-count="days">0</span><span class="stat-label">Days on the road</span></div>
+      <div class="stat"><span class="stat-num" data-count="photos">0</span><span class="stat-label">Photographs</span></div>
+    </section>
+
+    <section class="section" id="destinations">
+      <header class="section-head reveal">
+        <p class="eyebrow">Destinations</p>
+        <h2>Where the camera went</h2>
+      </header>
+      <div class="trips"></div>
+    </section>
+
+    <section class="section journey-section" id="journey">
+      <header class="section-head reveal">
+        <p class="eyebrow">The route</p>
+        <h2>The journey</h2>
+      </header>
+      <div class="journey-tabs reveal" role="tablist" aria-label="Choose a trip"></div>
+      <div class="journey">
+        <svg class="journey-line" viewBox="0 0 1000 4" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="2" x2="1000" y2="2"/></svg>
+        <ol class="journey-stops"></ol>
+      </div>
+    </section>
+
+    <section class="section" id="portfolio">
+      <header class="section-head reveal">
+        <p class="eyebrow">Portfolio</p>
+        <h2>Selected work</h2>
+      </header>
+      <div class="toolbar reveal">
+        <div class="filters" role="tablist" aria-label="Filter by trip"><span class="filter-ink"></span></div>
+        <div class="layout-toggle" role="group" aria-label="Layout">
+          <button class="is-active" data-layout="rows" aria-label="Row layout" data-cursor>
+            <svg viewBox="0 0 20 20"><rect x="2" y="3" width="7" height="6"/><rect x="11" y="3" width="7" height="6"/><rect x="2" y="11" width="10" height="6"/><rect x="14" y="11" width="4" height="6"/></svg>
+          </button>
+          <button data-layout="masonry" aria-label="Column layout" data-cursor>
+            <svg viewBox="0 0 20 20"><rect x="2" y="2" width="7" height="9"/><rect x="11" y="2" width="7" height="5"/><rect x="2" y="13" width="7" height="5"/><rect x="11" y="9" width="7" height="9"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="subfilters" role="tablist" aria-label="Filter by destination"></div>
+      <div class="gallery" data-gallery="portfolio"></div>
+    </section>
+
+    <section class="section" id="journal">
+      <header class="section-head reveal">
+        <p class="eyebrow">Journal</p>
+        <h2>Stories from the road</h2>
+      </header>
+      <div class="posts"></div>
+    </section>
+
+    <section class="section about" id="about">
+      <div class="about-media reveal"><img alt="" loading="lazy"></div>
+      <div class="about-text reveal">
+        <p class="eyebrow">About</p>
+        <h2 data-site="name"></h2>
+        <p data-site="about"></p>
+        <a class="btn" data-site-href="mailto" data-cursor>Get in touch</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- COLLECTION -->
+  <main class="view view-collection" data-view="collection" hidden>
+    <section class="banner">
+      <div class="banner-img"></div>
+      <div class="banner-content">
+        <a class="back" href="#/destinations" data-cursor>&larr; All destinations</a>
+        <p class="banner-native"></p>
+        <h1 class="banner-title"></h1>
+        <p class="banner-meta"></p>
+        <p class="banner-blurb"></p>
+      </div>
+    </section>
+    <section class="section">
+      <div class="trip-dests"></div>
+      <div class="gallery" data-gallery="collection"></div>
+      <nav class="pager"></nav>
+    </section>
+  </main>
+
+  <!-- STORY -->
+  <main class="view view-story" data-view="story" hidden>
+    <article class="story">
+      <header class="story-head">
+        <div class="story-cover"></div>
+        <div class="story-head-text">
+          <a class="back" href="#/journal" data-cursor>&larr; Journal</a>
+          <p class="eyebrow story-date"></p>
+          <h1 class="story-title"></h1>
+          <p class="story-excerpt"></p>
+        </div>
+      </header>
+      <div class="story-body"></div>
+      <footer class="story-foot"></footer>
+    </article>
+  </main>
+
+  <footer class="footer">
+    <p><span data-site="name"></span> &middot; <span data-site="tagline"></span></p>
+    <p><a data-site-href="mailto" data-cursor></a></p>
+    <p class="footer-small">&copy; <span class="year"></span> All photographs, all rights reserved.</p>
+  </footer>
+
+  <!-- Lightbox -->
+  <div class="lb" role="dialog" aria-modal="true" aria-label="Photo viewer" hidden>
+    <div class="lb-bg"></div>
+    <div class="lb-top">
+      <span class="lb-count"></span>
+      <div class="lb-tools">
+        <button class="lb-play" aria-label="Play slideshow" data-cursor>
+          <svg class="i-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <svg class="i-pause" viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+        </button>
+        <button class="lb-grid" aria-label="Show thumbnails" data-cursor>
+          <svg viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg>
+        </button>
+        <button class="lb-share" aria-label="Copy link to photo" data-cursor>
+          <svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+        <button class="lb-full" aria-label="Full screen" data-cursor>
+          <svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+        </button>
+        <button class="lb-close" aria-label="Close" data-cursor>
+          <svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="1.8"/></svg>
+        </button>
+      </div>
+      <span class="lb-timer"></span>
+    </div>
+    <div class="lb-stage">
+      <button class="lb-nav lb-prev" aria-label="Previous photo" data-cursor="Prev">
+        <svg viewBox="0 0 24 24"><path d="M15 4l-8 8 8 8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+      </button>
+      <figure class="lb-figure">
+        <img class="lb-blur" alt="">
+        <img class="lb-img" alt="">
+      </figure>
+      <button class="lb-nav lb-next" aria-label="Next photo" data-cursor="Next">
+        <svg viewBox="0 0 24 24"><path d="M9 4l8 8-8 8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+      </button>
+    </div>
+    <div class="lb-info">
+      <p class="lb-place"></p>
+      <h3 class="lb-title"></h3>
+      <p class="lb-caption"></p>
+    </div>
+    <div class="lb-strip"></div>
+  </div>
+
+  <div class="toast" role="status" aria-live="polite"></div>
+
+  <script src="site.js"></script>
+  <script src="photos.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
