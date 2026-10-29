@@ -8,6 +8,10 @@
   S.collections = S.collections.filter((c) => P.some((p) => p.collection === c.id));
   const col = Object.fromEntries(S.collections.map((c) => [c.id, c]));
   const trips = (S.trips || []).filter((t) => S.collections.some((c) => c.trip === t.id));
+  // Covers and slides fall back to photos that exist, so a half-added trip never shows a broken image
+  S.collections.forEach((c) => { if (!byId[c.cover]) c.cover = P.find((p) => p.collection === c.id).id; });
+  trips.forEach((t) => { if (!byId[t.cover]) t.cover = S.collections.find((c) => c.trip === t.id).cover; });
+  S.hero.slides = S.hero.slides.filter((id) => byId[id]);
   const trip = Object.fromEntries(trips.map((t) => [t.id, t]));
   const tripCollections = (tid) => S.collections.filter((c) => c.trip === tid);
   const photosInTrip = (tid) => P.filter((p) => col[p.collection] && col[p.collection].trip === tid);
