@@ -15,7 +15,7 @@ window.SITE = {
   },
 
   // Facts the chat assistant can share with visitors.
-  gear: 'Fujifilm X-T10',
+  gear: 'Fujifilm X-T10 and X-T30 III, with XF18-55mm, XC13-33mm and XF70-300mm lenses',
   editing: 'Adobe Lightroom Classic',
   usage: 'Want to use, license or print one of these photos? Get in touch by email and let me know which photo and how you would like to use it.',
 
@@ -32,15 +32,29 @@ window.SITE = {
     'I travel with a camera to slow down and look closer: at canals at dawn, lanterns in the rain and ' +
     'the way a city changes once the lights come on. This site is my growing archive of those moments.',
 
+  // Approximate map position of each destination [latitude, longitude].
+  // Destinations left out simply don't get a pin.
+  places: {
+    'suzhou': [31.317, 120.585], 'hangzhou': [30.243, 120.150], 'shanghai': [31.236, 121.490],
+    'jp25-wakayama': [34.230, 135.171], 'jp25-shirahama': [33.678, 135.345], 'jp25-nachi': [33.668, 135.890],
+    'jp25-amanohashidate': [35.567, 135.190], 'jp25-himeji': [34.839, 134.694], 'jp25-shikoku': [34.185, 133.808],
+    'jp25-kyoto': [35.004, 135.768],
+    'cn26-chengdu': [30.660, 104.064], 'cn26-chongqing': [29.563, 106.577], 'cn26-wulong': [29.433, 107.795],
+    'jp26-osaka': [34.687, 135.526], 'jp26-okayama': [34.602, 133.772], 'jp26-kobe': [34.690, 135.196],
+    'jp26-kyoto': [35.004, 135.778], 'jp26-nagoya': [35.185, 136.900], 'jp26-suzuka': [34.844, 136.541],
+    'jp26-ise': [34.455, 136.725], 'jp26-nakasendo': [35.527, 137.567], 'jp26-hokuriku': [36.562, 136.662],
+    'jp26-nagano': [36.402, 138.249],
+  },
+
   // Trips, newest first. 'label' tells apart trips to the same country.
   trips: [
-    { id: 'china-jun-2026', title: 'China', label: 'China · Jun 2026', country: 'China', native: '中国', dates: 'June 2026', cover: 'dscf6375',
+    { id: 'china-jun-2026', color: '#46ccf2', title: 'China', label: 'China · Jun 2026', country: 'China', native: '中国', dates: 'June 2026', cover: 'dscf6375',
       blurb: 'Canal towns, West Lake and the lights of Shanghai.' },
-    { id: 'japan-spring-2026', title: 'Japan', label: 'Japan · Spring 2026', country: 'Japan', native: '桑', dates: 'March – April 2026', cover: 'jp26-dscf5349',
+    { id: 'japan-spring-2026', color: '#ff8fb1', title: 'Japan', label: 'Japan · Spring 2026', country: 'Japan', native: '桜', dates: 'March – April 2026', cover: 'jp26-dscf5349',
       blurb: 'Three weeks chasing the cherry blossom from Osaka to Nagano, with the Suzuka Grand Prix in between.' },
-    { id: 'china-jan-2026', title: 'China', label: 'China · Jan 2026', country: 'China', native: '川渝', dates: 'January 2026', cover: 'cn26-dscf8068',
+    { id: 'china-jan-2026', color: '#ffb347', title: 'China', label: 'China · Jan 2026', country: 'China', native: '川渝', dates: 'January 2026', cover: 'cn26-dscf8068',
       blurb: 'Pandas and teahouses in Chengdu, Chongqing’s neon cliffs and the karst gorges of Wulong.' },
-    { id: 'japan-dec-2025', title: 'Japan', label: 'Japan · Dec 2025', country: 'Japan', native: '日本', dates: 'December 2025', cover: 'jp25-dscf6289',
+    { id: 'japan-dec-2025', color: '#ff6a4d', title: 'Japan', label: 'Japan · Dec 2025', country: 'Japan', native: '日本', dates: 'December 2025', cover: 'jp25-dscf6289',
       blurb: 'Two weeks around Kansai and Shikoku: tuna markets, sea cliffs, sacred waterfalls, castles and autumn leaves.' },
   ],
 

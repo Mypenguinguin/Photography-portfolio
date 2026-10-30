@@ -41,6 +41,40 @@ def taken(im):
         return None
 
 
+def _fraction(seconds):
+    if not seconds:
+        return None
+    seconds = float(seconds)
+    return f'1/{round(1 / seconds)}s' if seconds < 0.5 else f'{seconds:g}s'
+
+
+def camera_data(path):
+    """Camera, lens and exposure settings for the photo info panel (plus capture time)."""
+    with Image.open(path) as im:
+        exif = im.getexif()
+    sub = exif.get_ifd(0x8769)
+    clean = lambda v: str(v).replace('\x00', '').strip() if v else None
+    num = lambda v: float(v) if v else None
+    make, model = clean(exif.get(271)), clean(exif.get(272))
+    data = {
+        'camera': ' '.join(x for x in [('Fujifilm' if make and 'FUJI' in make.upper() else make), model] if x) or None,
+        'lens': clean(sub.get(0xA434)),
+        'focal': round(num(sub.get(0x920A))) if sub.get(0x920A) else None,
+        'focal35': int(sub.get(0xA405)) if sub.get(0xA405) else None,
+        'aperture': f'f/{num(sub.get(0x829D)):g}' if sub.get(0x829D) else None,
+        'shutter': _fraction(sub.get(0x829A)),
+        'iso': int(sub.get(0x8827)) if sub.get(0x8827) else None,
+        'ev': round(num(sub.get(0x9204)), 1) if sub.get(0x9204) else None,
+    }
+    data = {k: v for k, v in data.items() if v not in (None, '', 0)}
+    raw = sub.get(36867) or exif.get(306)
+    try:
+        when = datetime.strptime(raw, '%Y:%m:%d %H:%M:%S').isoformat()
+    except (TypeError, ValueError):
+        when = None
+    return data, when
+
+
 def add(path, collection, title=None, caption='', prefix=''):
     pid = prefix + os.path.splitext(os.path.basename(path))[0].lower()
     im = Image.open(path)
@@ -58,6 +92,7 @@ def add(path, collection, title=None, caption='', prefix=''):
     buf = io.BytesIO()
     tiny.save(buf, 'JPEG', quality=60)
     r, g, b = im.resize((1, 1), Image.BOX).getpixel((0, 0))
+    exif, _ = camera_data(path)
     return {
         'id': pid,
         'collection': collection,
@@ -67,6 +102,7 @@ def add(path, collection, title=None, caption='', prefix=''):
         'w': w, 'h': h,
         'color': '#%02x%02x%02x' % (r, g, b),
         'blur': 'data:image/jpeg;base64,' + base64.b64encode(buf.getvalue()).decode(),
+        'exif': exif,
     }
 
 

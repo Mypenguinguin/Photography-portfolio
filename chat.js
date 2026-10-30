@@ -237,8 +237,12 @@
     });
     lines.push('', 'JOURNAL STORIES');
     (S.journal || []).forEach((j) => lines.push(`${j.title} (${j.date}): ${j.excerpt} Link: #/journal/${j.id}`));
-    lines.push('', 'PHOTOS (title | caption | place | date | link)');
-    P.forEach((p) => lines.push(`${p.title} | ${p.caption} | ${placeOf(p)} | ${(p.date || '').slice(0, 10)} | #/photo/${p.id}`));
+    lines.push('', 'PHOTOS (title | caption | place | date and time | camera settings | link)');
+    P.forEach((p) => {
+      const e = p.exif || {};
+      const cam = [e.camera, e.lens, e.focal35 && `${e.focal35}mm equiv.`, e.aperture, e.shutter, e.iso && `ISO ${e.iso}`].filter(Boolean).join(', ');
+      lines.push(`${p.title} | ${p.caption} | ${placeOf(p)} | ${(p.date || '').replace('T', ' ').slice(0, 16)} | ${cam || 'not recorded'} | #/photo/${p.id}`);
+    });
     return lines.filter((l) => l !== false && l != null).join('\n');
   }
 

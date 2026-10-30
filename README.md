@@ -22,6 +22,19 @@ python tools/add_photos.py "D:/Trips/Tokyo" --collection tokyo
 For a new trip, first add a collection to `collections` in `site.js`
 (`id`, `title`, `native`, `dates`, `cover`, `blurb`). Then add photos with that `id`.
 
+## How the site is organised
+
+- **Home**: the hero, one ticket per trip, a map of every stop, the latest stories and About.
+- **Trip pages** (`#/trip/...`): the route on a map, then one chapter per destination.
+- **Archive** (`#/archive`): every photo, filterable by trip and destination.
+- **Photo details**: the ⓘ button (or the `i` key) in the photo viewer shows where, when and
+  the camera settings.
+
+In `site.js`: `trips[].color` is each trip's accent colour, and `places` holds the map
+position of each destination (leave one out and it simply gets no pin).
+Camera settings come from the original files. New photos get them automatically through
+`add_photos.py`; to fill in older ones, run `python tools/add_exif.py`.
+
 ## Chat assistant
 
 `chat.js` adds the "Ask" button. It answers from the site's content (trips, destinations,

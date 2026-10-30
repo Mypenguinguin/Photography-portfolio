@@ -20,6 +20,10 @@
     const t = c && trip[c.trip];
     return c ? (t && t.title !== c.title ? `${c.title}, ${t.title}` : c.title) : '';
   };
+  const places = S.places || {};
+  const tripColor = (t) => (t && t.color) || '#46ccf2';
+  const daysIn = (photos) => new Set(photos.map((p) => p.date && p.date.slice(0, 10)).filter(Boolean)).size;
+  const exifLine = (p) => (p.exif ? [p.exif.aperture, p.exif.shutter, p.exif.iso && `ISO ${p.exif.iso}`].filter(Boolean).join(' · ') : '');
   S.journal = S.journal.filter((p) => col[p.collection]); // stories wait for their destination's photos
   const posts = [...S.journal].sort((a, b) => b.date.localeCompare(a.date));
   const postById = Object.fromEntries(posts.map((p) => [p.id, p]));
@@ -176,7 +180,7 @@
         io.unobserve(e.target);
         const el = e.target, to = values[el.dataset.count], t0 = performance.now(), d = reduced ? 1 : 1400;
         const tick = (t) => {
-          const k = Math.min(1, (t - t0) / d);
+          const k = Math.min(1, Math.max(0, (t - t0) / d));
           el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3)));
           if (k < 1) requestAnimationFrame(tick);
         };
@@ -186,77 +190,127 @@
     $$('[data-count]').forEach((el) => io.observe(el));
   }
 
-  /* ---------- Destinations, journey, menu ---------- */
-  // Cards for a set of destinations; wide cards first so every row is filled
-  function destCards(list) {
-    const n = list.length;
-    const wide = n === 1 ? 0 : n % 3 === 1 ? Math.min(4, n) : n % 3 === 2 ? 2 : 0;
-    return list.map((c, i) => `
-      <a class="dest reveal${n === 1 ? ' dest-full' : i < wide ? ' dest-wide' : ''}" href="#/collection/${c.id}" data-cursor="View" style="transition-delay:${(i % 3) * 0.08}s">
-        <div class="dest-img" data-bg="${full(c.cover)}" style="background-color:${byId[c.cover] ? byId[c.cover].color : ''}"></div>
-        <span class="dest-view">VIEW</span>
-        <div class="dest-body">
-          <p class="dest-native">${esc(c.native)}</p>
-          <h3 class="dest-title">${esc(c.title)}</h3>
-          <div class="dest-meta"><span>${photosIn(c.id).length} photos</span><span>${esc(c.dates)}</span></div>
-        </div>
-      </a>`).join('');
+  /* ---------- Maps (Leaflet + OpenStreetMap, darkened in CSS) ---------- */
+  const hasMap = () => typeof window.L !== 'undefined';
+  function addTiles(map) {
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      className: 'tiles-dark',
+      maxZoom: 18,
+    }).addTo(map);
+    map.attributionControl.setPrefix('');
   }
+  const pinIcon = (label, color) => L.divIcon({
+    className: 'pin',
+    html: `<span style="--tc:${color}">${label}</span>`,
+    iconSize: [26, 26],
+    iconAnchor: [13, 13],
+  });
+  const popupHtml = (c) => `
+    <a class="pop" href="#/collection/${c.id}">
+      <img src="${thumb(c.cover)}" alt="">
+      <span><b>${esc(c.title)}</b><small>${esc(c.native)} · ${esc(c.dates)}</small><em>${photosIn(c.id).length} photos &rarr;</em></span>
+    </a>`;
 
-  function renderJourney(tid) {
-    const list = tripCollections(tid);
-    const j = $('.journey');
-    const ol = $('.journey-stops');
-    ol.style.gridTemplateColumns = `repeat(${list.length}, 1fr)`;
-    const inset = 50 / list.length;
-    $('.journey-line').style.left = inset + '%';
-    $('.journey-line').style.width = 100 - 2 * inset + '%';
-    ol.innerHTML = list.map((c, i) => `
-      <li class="stop" style="transition-delay:${0.25 + i * 0.14}s">
-        <a href="#/collection/${c.id}" data-cursor="View">
-          <span class="stop-date">${esc(c.dates)}</span>
-          <span class="stop-dot"></span>
-          <span class="stop-thumb"><img src="${thumb(c.cover)}" alt="" loading="lazy"></span>
-          <span class="stop-text">
-            <span class="stop-name">${esc(c.title)}</span>
-            <span class="stop-native">${esc(c.native)}</span>
-            <span class="stop-when">${esc(c.dates)}</span>
-          </span>
-        </a>
-      </li>`).join('');
-    $$('.journey-tabs button').forEach((b) => b.classList.toggle('is-active', b.dataset.trip === tid));
-    if (j.classList.contains('is-in')) {
-      j.classList.remove('is-in');
-      void j.offsetWidth;
-      requestAnimationFrame(() => j.classList.add('is-in'));
+  // Draws trips as numbered pins joined by a dashed route; returns { map, groups }
+  function routeMap(el, tripList, opts = {}) {
+    if (!hasMap()) {
+      el.innerHTML = '<p class="map-off">The map could not load.</p>';
+      return null;
     }
+    const map = L.map(el, { scrollWheelZoom: false, dragging: !L.Browser.mobile, tap: false, zoomSnap: 0.25 });
+    addTiles(map);
+    const groups = {};
+    tripList.forEach((t) => {
+      const g = L.featureGroup();
+      const stops = tripCollections(t.id).filter((c) => places[c.id]);
+      if (stops.length > 1) {
+        L.polyline(stops.map((c) => places[c.id]), { color: tripColor(t), weight: 2, opacity: 0.85, dashArray: '3 7' }).addTo(g);
+      }
+      stops.forEach((c) => {
+        const n = tripCollections(t.id).indexOf(c) + 1;
+        const m = L.marker(places[c.id], { icon: pinIcon(n, tripColor(t)), title: c.title, riseOnHover: true });
+        if (opts.onPin) m.on('click', () => opts.onPin(c));
+        else m.bindPopup(popupHtml(c), { className: 'map-pop', closeButton: false, maxWidth: 260 });
+        m.addTo(g);
+      });
+      g.addTo(map);
+      groups[t.id] = g;
+    });
+    const fit = (ids) => {
+      const bounds = L.latLngBounds([]);
+      ids.forEach((id) => groups[id] && groups[id].getLayers().length && bounds.extend(groups[id].getBounds()));
+      if (bounds.isValid()) map.fitBounds(bounds, { padding: [36, 36], maxZoom: 9 });
+    };
+    fit(tripList.map((t) => t.id));
+    return { map, groups, fit };
   }
 
-  function initDestinations() {
-    $('.trips').innerHTML = trips.map((t) => {
+  let atlas = null;
+  function initAtlas() {
+    const tabs = $('.atlas-tabs');
+    atlas = routeMap($('.atlas-map'), trips);
+    if (!atlas) { tabs.hidden = true; return; }
+    tabs.innerHTML = `<button role="tab" data-trip="all" class="is-active" data-cursor>All trips</button>` +
+      trips.map((t) => `<button role="tab" data-trip="${t.id}" data-cursor><i style="--tc:${tripColor(t)}"></i>${esc(t.label || t.title)}</button>`).join('');
+    tabs.addEventListener('click', (e) => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      $$('button', tabs).forEach((x) => x.classList.toggle('is-active', x === b));
+      const ids = b.dataset.trip === 'all' ? trips.map((t) => t.id) : [b.dataset.trip];
+      Object.entries(atlas.groups).forEach(([id, g]) => (ids.includes(id) ? g.addTo(atlas.map) : g.remove()));
+      atlas.map.closePopup();
+      atlas.fit(ids);
+    });
+    // Leaflet measures its box; refit once the section is actually on screen
+    new IntersectionObserver(([e], io) => {
+      if (!e.isIntersecting) return;
+      io.disconnect();
+      atlas.map.invalidateSize();
+      atlas.fit(trips.map((t) => t.id));
+    }).observe($('.atlas-map'));
+  }
+
+  /* ---------- Trip tickets ---------- */
+  function initTrips() {
+    $('.tickets').innerHTML = trips.map((t, n) => {
       const list = tripCollections(t.id);
+      const ph = photosInTrip(t.id);
+      const strip = list.slice(0, 4).map((c) => c.cover);
       return `
-      <div class="trip-group">
-        <header class="trip-head reveal">
-          <a href="#/trip/${t.id}" data-cursor="View">
-            <span class="trip-native">${esc(t.native)}</span>
-            <h3 class="trip-title">${esc(t.title)} <em>${esc(t.dates)}</em></h3>
-          </a>
-          <span class="trip-count">${list.length} destination${list.length === 1 ? '' : 's'} · ${photosInTrip(t.id).length} photos</span>
-        </header>
-        <div class="destinations">${destCards(list)}</div>
-      </div>`;
+      <a class="ticket reveal" href="#/trip/${t.id}" style="--tc:${tripColor(t)}" data-cursor="Board">
+        <div class="ticket-media">
+          <div class="ticket-img" data-bg="${full(t.cover)}" style="background-color:${byId[t.cover].color}"></div>
+          <div class="ticket-strip">${strip.map((id) => `<img src="${thumb(id)}" alt="" loading="lazy">`).join('')}</div>
+        </div>
+        <div class="ticket-body">
+          <div class="ticket-row"><span class="ticket-no">Trip ${String(trips.length - n).padStart(2, '0')}</span><span class="ticket-native">${esc(t.native)}</span></div>
+          <h3 class="ticket-title">${esc(t.title)}</h3>
+          <p class="ticket-dates">${esc(t.dates)}</p>
+          <ol class="ticket-route">${list.map((c) => `<li>${esc(c.title)}</li>`).join('')}</ol>
+          <p class="ticket-blurb">${esc(t.blurb)}</p>
+          <dl class="ticket-stats">
+            <div><dt>Stops</dt><dd>${list.length}</dd></div>
+            <div><dt>Days</dt><dd>${daysIn(ph) || '&ndash;'}</dd></div>
+            <div><dt>Frames</dt><dd>${ph.length}</dd></div>
+          </dl>
+        </div>
+        <div class="ticket-stub" aria-hidden="true">
+          <span class="stub-text">${esc(S.name)} &middot; ${esc(t.label || t.title)}</span>
+          <span class="stub-cta">Board &rarr;</span>
+        </div>
+      </a>`;
     }).join('');
+  }
 
-    $('.journey-tabs').innerHTML = trips.map((t) => `<button role="tab" data-trip="${t.id}" data-cursor>${esc(t.title)} <small>${esc(t.dates)}</small></button>`).join('');
-    $('.journey-tabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) renderJourney(b.dataset.trip); });
-    if (trips[0]) renderJourney(trips[0].id);
-
+  function initMenu() {
     const links = [
       { href: '#/', label: 'Home', img: S.hero.slides[0] },
-      { href: '#/portfolio', label: 'Portfolio', img: S.hero.slides[1] },
-      { href: '#/journal', label: 'Journal', img: S.hero.slides[2] },
-      { href: '#/about', label: 'About', img: S.aboutPhoto || S.hero.slides[3] },
+      { href: '#/trips', label: 'Trips', img: S.hero.slides[1] },
+      { href: '#/map', label: 'Map', img: S.hero.slides[2] },
+      { href: '#/archive', label: 'Archive', img: S.hero.slides[3] },
+      { href: '#/journal', label: 'Journal', img: S.hero.slides[4] || S.hero.slides[0] },
+      { href: '#/about', label: 'About', img: S.aboutPhoto || S.hero.slides[1] },
     ];
     $('.menu-links').innerHTML =
       links.map((l, i) => `<li><a href="${l.href}" data-img="${l.img}" style="transition-delay:${0.15 + i * 0.05}s" data-cursor>${l.label}</a></li>`).join('') +
@@ -308,6 +362,7 @@
     });
   }, { rootMargin: '0px 0px 120px 0px' });
 
+  const ro = new ResizeObserver((entries) => entries.forEach((e) => justify(e.target)));
   function justify(el) {
     if (!el.classList.contains('rows')) return;
     const W = Math.floor(el.getBoundingClientRect().width);
@@ -339,14 +394,18 @@
           <img class="t-blur" src="${p.blur}" alt="" aria-hidden="true">
           <img class="t-img" data-src="${thumb(p.id)}" alt="${esc(p.title)}">
         </div>
-        <div class="tile-cap">${showPlace && col[p.collection] ? `<span>${esc(placeOf(p))}</span>` : ''}<strong>${esc(p.title)}</strong></div>
+        <div class="tile-cap">
+          ${showPlace && col[p.collection] ? `<span>${esc(placeOf(p))}</span>` : ''}<strong>${esc(p.title)}</strong>
+          ${exifLine(p) || p.date ? `<em class="t-data">${[p.date && fmtShort(p.date), exifLine(p)].filter(Boolean).join(' · ')}</em>` : ''}
+        </div>
       </a>`).join('');
     $$('.tile', el).forEach((t) => { t._ar = byId[t.dataset.id].w / byId[t.dataset.id].h; tileIO.observe(t); });
     el._items = items;
+    ro.observe(el);
     justify(el);
   }
-  const ro = new ResizeObserver((entries) => entries.forEach((e) => justify(e.target)));
-  $$('.gallery').forEach((g) => { g.classList.add('rows'); ro.observe(g); });
+  const fmtShort = (iso) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  $$('.gallery').forEach((g) => g.classList.add('rows'));
 
   // Clicking a tile opens the lightbox on that gallery's photos
   document.addEventListener('click', (e) => {
@@ -432,6 +491,13 @@
         </div>
       </a>`;
     }).join('');
+    const more = $('.posts-more');
+    more.hidden = posts.length <= 3;
+    $('button', more).addEventListener('click', () => {
+      $('.posts').classList.add('is-all');
+      more.hidden = true;
+      observeReveals();
+    });
     const about = $('.about-media img');
     about.src = full(S.aboutPhoto || S.hero.slides[3]);
   }
@@ -460,15 +526,27 @@
       </a>`).join('');
   };
 
+  let tripMap = null, chapterIO = null;
+  function clearTrip(v) {
+    if (tripMap) { tripMap.map.remove(); tripMap = null; }
+    if (chapterIO) { chapterIO.disconnect(); chapterIO = null; }
+    $('.trip-overview', v).innerHTML = '';
+    $('.chapters', v).innerHTML = '';
+    $('.route-nav', v).hidden = true;
+  }
+
   function renderCollection(id) {
     const c = col[id];
     const t = trip[c.trip];
     const items = photosIn(id);
     const v = $('.view-collection');
+    clearTrip(v);
+    v.style.setProperty('--tc', tripColor(t));
     renderBanner(v, c, `${items.length} photographs · ${c.dates}`,
-      t ? { href: `#/trip/${t.id}`, label: `${t.label || t.title}` } : { href: '#/destinations', label: 'All destinations' });
-    $('.trip-dests', v).innerHTML = '';
-    renderGallery($('[data-gallery="collection"]', v), items, false);
+      t ? { href: `#/trip/${t.id}`, label: `${t.label || t.title}` } : { href: '#/trips', label: 'All trips' });
+    const g = $('[data-gallery="collection"]', v);
+    g.hidden = false;
+    renderGallery(g, items, false);
     $('.pager', v).innerHTML = pager(t ? tripCollections(t.id) : S.collections, c, 'collection', 'destination');
   }
 
@@ -477,11 +555,81 @@
     const list = tripCollections(id);
     const items = photosInTrip(id);
     const v = $('.view-collection');
-    renderBanner(v, t, `${list.length} destinations · ${items.length} photographs · ${t.dates}`, { href: '#/destinations', label: 'All trips' });
-    $('.trip-dests', v).innerHTML = `<div class="destinations">${destCards(list)}</div><h2 class="trip-all">All photographs</h2>`;
-    renderGallery($('[data-gallery="collection"]', v), items, true);
+    clearTrip(v);
+    v.style.setProperty('--tc', tripColor(t));
+    renderBanner(v, t, `${list.length} destinations · ${items.length} photographs · ${t.dates}`, { href: '#/trips', label: 'All trips' });
+    $('[data-gallery="collection"]', v).innerHTML = '';
+    $('[data-gallery="collection"]', v).hidden = true;
+
+    // Sticky route bar: one stop per destination
+    const nav = $('.route-nav', v);
+    nav.hidden = false;
+    $('ol', nav).innerHTML = list.map((c, k) =>
+      `<li><button type="button" data-ch="${c.id}" data-cursor><span>${String(k + 1).padStart(2, '0')}</span>${esc(c.title)}</button></li>`).join('');
+
+    // Overview: the route on a map plus the trip's numbers and gear
+    const cams = [...new Set(items.map((p) => p.exif && p.exif.camera).filter(Boolean))];
+    const lenses = [...new Set(items.map((p) => p.exif && p.exif.lens).filter(Boolean))];
+    $('.trip-overview', v).innerHTML = `
+      <div class="ov-map"></div>
+      <div class="ov-facts reveal">
+        <p class="eyebrow">The route</p>
+        <ol class="ov-stops">${list.map((c, k) => `<li><button type="button" data-ch="${c.id}" data-cursor><span>${String(k + 1).padStart(2, '0')}</span><b>${esc(c.title)}</b><small>${esc(c.dates)}</small></button></li>`).join('')}</ol>
+        <dl class="ov-data">
+          <div><dt>Frames</dt><dd>${items.length}</dd></div>
+          <div><dt>Days</dt><dd>${daysIn(items) || '&ndash;'}</dd></div>
+          ${cams.length ? `<div class="wide"><dt>Shot on</dt><dd>${cams.map(esc).join(', ')}</dd></div>` : ''}
+          ${lenses.length ? `<div class="wide"><dt>Lenses</dt><dd>${lenses.map(esc).join(', ')}</dd></div>` : ''}
+        </dl>
+      </div>`;
+    tripMap = routeMap($('.ov-map', v), [t], { onPin: (c) => goChapter(c.id) });
+
+    // One chapter per destination; the lightbox runs through the whole trip
+    $('.chapters', v).innerHTML = list.map((c, k) => `
+      <section class="chapter" id="ch-${c.id}">
+        <header class="chapter-head reveal">
+          <span class="chapter-no">${String(k + 1).padStart(2, '0')}</span>
+          <div class="chapter-text">
+            <p class="chapter-native">${esc(c.native)} &middot; ${esc(c.dates)} &middot; ${photosIn(c.id).length} frames</p>
+            <h2 class="chapter-title">${esc(c.title)}</h2>
+            <p class="chapter-blurb">${esc(c.blurb)}</p>
+          </div>
+          <a class="chapter-link" href="#/collection/${c.id}" data-cursor>Open &rarr;</a>
+        </header>
+        <div class="gallery rows" data-gallery="ch-${c.id}"></div>
+      </section>`).join('');
+    list.forEach((c) => {
+      const g = $(`[data-gallery="ch-${c.id}"]`, v);
+      renderGallery(g, photosIn(c.id), false);
+      g._items = items;
+    });
+
+    // Highlight the chapter being read
+    const buttons = $$('[data-ch]', nav);
+    chapterIO = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        const id = e.target.id.slice(3);
+        buttons.forEach((b) => b.classList.toggle('is-active', b.dataset.ch === id));
+        const on = buttons.find((b) => b.dataset.ch === id);
+        if (on) $('ol', nav).scrollTo({ left: on.offsetLeft - 24, behavior: 'smooth' });
+      });
+    }, { rootMargin: '-35% 0px -60% 0px' });
+    $$('.chapter', v).forEach((s) => chapterIO.observe(s));
     $('.pager', v).innerHTML = pager(trips, t, 'trip', 'trip');
+    setTimeout(() => tripMap && (tripMap.map.invalidateSize(), tripMap.fit([t.id])), 650);
   }
+
+  function goChapter(id) {
+    const el = document.getElementById('ch-' + id);
+    if (!el) return;
+    const y = el.getBoundingClientRect().top + scrollY - 70;
+    window.scrollTo({ top: y, behavior: reduced ? 'auto' : 'smooth' });
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-ch]');
+    if (b) goChapter(b.dataset.ch);
+  });
 
   function renderStory(id) {
     const p = postById[id];
@@ -525,6 +673,9 @@
       $$('.view').forEach((v) => { v.hidden = v.dataset.view !== view; });
       if (render) render();
       if (view === 'home') document.title = `${S.name} — ${S.tagline}`;
+      if (view === 'archive') document.title = `Archive — ${S.name}`;
+      $$('.nav a').forEach((x) => x.classList.toggle('is-active', view === 'archive' && x.getAttribute('href') === '#/archive'));
+      if (view === 'home' && atlas) setTimeout(() => atlas.map.invalidateSize(), 50);
       observeReveals();
       observeBgs();
       $$('.gallery').forEach(justify);
@@ -545,7 +696,8 @@
     else if (a === 'trip' && trip[b]) show('collection', () => renderTrip(b));
     else if (a === 'journal' && b && postById[b]) show('story', () => renderStory(b));
     else if (a === 'photo' && byId[b]) { show('home'); lightbox.open(P, P.indexOf(byId[b])); }
-    else show('home', null, ['destinations', 'portfolio', 'journal', 'about', 'journey'].includes(a) ? a : null);
+    else if (a === 'archive' || a === 'portfolio') show('archive');
+    else show('home', null, { trips: 'trips', destinations: 'trips', map: 'map', journey: 'map', journal: 'journal', about: 'about' }[a] || null);
   }
   window.addEventListener('hashchange', route);
   // Re-run the route when a link points at the hash we are already on
@@ -583,7 +735,7 @@
         navLinks.forEach((a) => a.classList.toggle('is-active', a.getAttribute('href') === '#/' + e.target.id));
       });
     }, { rootMargin: '-45% 0px -50% 0px' });
-    ['destinations', 'portfolio', 'journal', 'about'].forEach((id) => io.observe(document.getElementById(id)));
+    ['trips', 'map', 'journal', 'about'].forEach((id) => io.observe(document.getElementById(id)));
   }
 
   /* ---------- Custom cursor ---------- */
@@ -621,8 +773,99 @@
     const info = $('.lb-info', lb);
     const strip = $('.lb-strip', lb);
     const timerBar = $('.lb-timer', lb);
+    const panel = $('.lb-panel', lb);
+    const infoBtn = $('.lb-info-btn', lb);
+    const imprint = $('.lb-imprint', lb);
     const PLAY = 5000;
     let set = [], i = 0, isOpen = false, playing = false, playTimer = 0, lastFocus = null;
+    let showInfo = store.get('info') ? store.get('info') === '1' : innerWidth >= 1100;
+    let mini = null, miniPin = null;
+
+    /* Details panel: where, when, camera */
+    const pad = (n) => String(n).padStart(2, '0');
+    const partOfDay = (h) => (h < 5 ? 'Night' : h < 8 ? 'Early morning' : h < 11 ? 'Morning' : h < 14 ? 'Midday' : h < 17 ? 'Afternoon' : h < 19 ? 'Evening' : 'Night');
+    function fillPanel(p) {
+      const c = col[p.collection];
+      const t = c && trip[c.trip];
+      panel.style.setProperty('--tc', tripColor(t));
+      $('.lbp-frame', panel).innerHTML = `Frame <b>${pad(i + 1)}</b> / ${pad(set.length)}`;
+      $('.lbp-title', panel).textContent = p.title;
+      $('.lbp-caption', panel).textContent = p.caption || '';
+      $('.lbp-place', panel).innerHTML = c
+        ? `<b>${esc(c.title)}</b> <span class="lbp-native">${esc(c.native)}</span><small>${esc(t ? t.label || t.title : '')}</small>`
+        : '';
+      const ll = c && places[c.id];
+      const box = $('.lbp-map', panel);
+      box.hidden = !ll || !hasMap();
+      if (ll && hasMap() && showInfo) {
+        if (!mini) {
+          mini = L.map(box, { zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, touchZoom: false, tap: false });
+          addTiles(mini);
+          miniPin = L.marker(ll, { icon: pinIcon('', tripColor(t)), interactive: false }).addTo(mini);
+        }
+        miniPin.setIcon(pinIcon('', tripColor(t)));
+        miniPin.setLatLng(ll);
+        mini.invalidateSize();
+        mini.setView(ll, 8, { animate: false });
+      }
+      const more = $('.lbp-more', panel);
+      more.hidden = !c;
+      if (c) {
+        more.href = `#/collection/${c.id}`;
+        more.innerHTML = `${ll ? 'Approximate location &middot; ' : ''}More from ${esc(c.title)} &rarr;`;
+      }
+      const when = $('.lbp-when', panel);
+      if (p.date) {
+        const d = new Date(p.date);
+        const day = d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        when.innerHTML = p.date.length > 10
+          ? `${day}<span class="lbp-time"><b>${pad(d.getHours())}:${pad(d.getMinutes())}</b> ${partOfDay(d.getHours())}</span>`
+          : day;
+      } else {
+        when.textContent = 'Date not recorded';
+      }
+      const e = p.exif || {};
+      const rows = [
+        ['Camera', e.camera],
+        ['Lens', e.lens],
+        ['Focal length', e.focal && `${e.focal} mm${e.focal35 ? ` <small>(${e.focal35} mm equiv.)</small>` : ''}`],
+        ['Aperture', e.aperture],
+        ['Shutter', e.shutter],
+        ['ISO', e.iso],
+        ['Exposure', e.ev ? `${e.ev > 0 ? '+' : ''}${e.ev} EV` : null],
+      ].filter(([, v]) => v);
+      const strip = [e.aperture, e.shutter, e.iso && `ISO${e.iso}`, e.focal35 && `${e.focal35}mm`].filter(Boolean);
+      $('.lbp-exif', panel).innerHTML = rows.length
+        ? `<div class="lbp-strip">${strip.map((s) => `<span>${esc(s)}</span>`).join('')}</div>` + rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${typeof v === 'number' ? v : (k === 'Focal length' ? v : esc(v))}</dd></div>`).join('')
+        : '<p class="lbp-none">Camera data isn\'t available for this photo yet.</p>';
+    }
+
+    // Film-camera style date imprint, pinned to the photo's lower-right corner
+    function setImprint(p) {
+      if (!p.date) { imprint.textContent = ''; return; }
+      const d = new Date(p.date);
+      imprint.textContent = `'${String(d.getFullYear()).slice(2)} ${d.getMonth() + 1} ${d.getDate()}`;
+    }
+    function placeImprint() {
+      if (!img.naturalWidth) return;
+      const r = img.getBoundingClientRect();
+      const f = fig.getBoundingClientRect();
+      imprint.style.right = `${f.right - r.right + Math.max(10, r.width * 0.025)}px`;
+      imprint.style.bottom = `${f.bottom - r.bottom + Math.max(8, r.height * 0.03)}px`;
+      imprint.style.fontSize = `${Math.max(11, Math.min(22, r.width * 0.022))}px`;
+    }
+    function setInfo(on) {
+      showInfo = on;
+      lb.classList.toggle('show-panel', on);
+      infoBtn.classList.toggle('is-on', on);
+      infoBtn.setAttribute('aria-pressed', on);
+      store.set('info', on ? '1' : '0');
+      if (on && set[i]) fillPanel(set[i]);
+      setTimeout(() => { placeImprint(); if (on && mini) { mini.invalidateSize(); fillPanel(set[i]); } }, 460);
+    }
+    infoBtn.addEventListener('click', () => setInfo(!showInfo));
+    $('.lbp-more', panel).addEventListener('click', () => close());
+    new ResizeObserver(() => isOpen && placeImprint()).observe(fig);
 
     const preload = (k) => { const p = set[(k + set.length) % set.length]; if (p) new Image().src = full(p.id); };
 
@@ -637,7 +880,10 @@
         fig.classList.remove('loaded', 'is-leaving');
         img.classList.remove('is-loaded');
         blur.src = p.blur;
-        img.onload = () => { img.classList.add('is-loaded'); fig.classList.add('loaded'); };
+        img.onload = () => { img.classList.add('is-loaded'); fig.classList.add('loaded'); requestAnimationFrame(placeImprint); };
+        img.addEventListener('transitionend', placeImprint, { once: true });
+        setImprint(p);
+        fillPanel(p);
         img.alt = p.title;
         img.src = full(p.id);
         if (img.complete && img.naturalWidth) img.onload();
@@ -676,6 +922,9 @@
       strip.innerHTML = set.map((p, n) => `<button aria-label="${esc(p.title)}" data-n="${n}"><img src="${thumb(p.id)}" alt="" loading="lazy"></button>`).join('');
       if (!isOpen) {
         lastFocus = document.activeElement;
+        lb.classList.toggle('show-panel', showInfo);
+        infoBtn.classList.toggle('is-on', showInfo);
+        infoBtn.setAttribute('aria-pressed', showInfo);
         lb.hidden = false;
         document.body.classList.add('no-scroll');
         requestAnimationFrame(() => lb.classList.add('is-open'));
@@ -692,7 +941,7 @@
       lb.classList.remove('is-open');
       document.body.classList.remove('no-scroll');
       setTimeout(() => { if (!isOpen) lb.hidden = true; }, 400);
-      if (location.hash.startsWith('#/photo/')) history.replaceState(null, '', '#/portfolio');
+      if (location.hash.startsWith('#/photo/')) history.replaceState(null, '', '#/');
       if (lastFocus) lastFocus.focus({ preventScroll: true });
     }
 
@@ -759,6 +1008,7 @@
       else if (e.key === ' ') { e.preventDefault(); setPlaying(!playing); }
       else if (e.key.toLowerCase() === 'f') $('.lb-full', lb).click();
       else if (e.key.toLowerCase() === 'g') $('.lb-grid', lb).click();
+      else if (e.key.toLowerCase() === 'i') setInfo(!showInfo);
       else return;
     });
 
@@ -787,7 +1037,9 @@
   /* ---------- Boot ---------- */
   initHero();
   initStats();
-  initDestinations();
+  initTrips();
+  initAtlas();
+  initMenu();
   initPortfolio();
   initJournal();
   initScroll();
