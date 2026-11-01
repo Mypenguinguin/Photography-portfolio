@@ -13,8 +13,8 @@ import add_photos as ap
 SOURCES = {  # photo id prefix -> folder with the original camera files
     '': 'C:/Users/chanc/Documents/SHANGHAI 2026',
     'jp25-': 'C:/Users/chanc/Pictures/JAPAN 2025 (edited)/JAPAN 2025',
-    'cn26-': 'E:/CHINA JAN 2026',
-    'jp26-': 'E:/JAPAN 2026',
+    'cn26-': 'C:/Users/chanc/Pictures/E drive backup/CHINA JAN 2026',
+    'jp26-': 'C:/Users/chanc/Pictures/E drive backup/JAPAN 2026',
 }
 
 
