@@ -11,7 +11,7 @@ window.SITE = {
     title: 'Water, Light & Lanterns',
     subtitle: 'China · Japan — four journeys, 2025 – 2026',
     // Missing ids (e.g. a trip not added yet) are skipped automatically
-    slides: ['dscf5939', 'jp26-dscf5349', 'cn26-dscf8068', 'jp25-dscf6188', 'dscf6375', 'jp26-dscf9409', 'dscf6180', 'cn26-dscf7323'],
+    slides: ['dscf5939', 'jp26-dscf5349', 'cn26-dscf8067', 'jp25-dscf6188', 'dscf6375', 'jp26-dscf9409', 'dscf6180', 'cn26-dscf7307'],
   },
 
   // Facts the chat assistant can share with visitors.
@@ -52,7 +52,7 @@ window.SITE = {
       blurb: 'Canal towns, West Lake and the lights of Shanghai.' },
     { id: 'japan-spring-2026', color: '#ff8fb1', title: 'Japan', label: 'Japan · Spring 2026', country: 'Japan', native: '桜', dates: 'March – April 2026', cover: 'jp26-dscf5349',
       blurb: 'Three weeks chasing the cherry blossom from Osaka to Nagano, with the Suzuka Grand Prix in between.' },
-    { id: 'china-jan-2026', color: '#ffb347', title: 'China', label: 'China · Jan 2026', country: 'China', native: '川渝', dates: 'January 2026', cover: 'cn26-dscf8068',
+    { id: 'china-jan-2026', color: '#ffb347', title: 'China', label: 'China · Jan 2026', country: 'China', native: '川渝', dates: 'January 2026', cover: 'cn26-dscf8067',
       blurb: 'Pandas and teahouses in Chengdu, Chongqing’s neon cliffs and the karst gorges of Wulong.' },
     { id: 'japan-dec-2025', color: '#ff6a4d', title: 'Japan', label: 'Japan · Dec 2025', country: 'Japan', native: '日本', dates: 'December 2025', cover: 'jp25-dscf6289',
       blurb: 'Two weeks around Kansai and Shikoku: tuna markets, sea cliffs, sacred waterfalls, castles and autumn leaves.' },
@@ -72,7 +72,7 @@ window.SITE = {
 
     { id: 'jp26-osaka', trip: 'japan-spring-2026', title: 'Osaka', native: '大阪', dates: '18 – 19 Mar 2026', cover: 'jp26-dscf8897', blurb: 'The castle, plum blossom, Minoo Falls and the neon of Dotonbori.' },
     { id: 'jp26-okayama', trip: 'japan-spring-2026', title: 'Okayama & Kurashiki', native: '岡山', dates: '20 – 21 Mar 2026', cover: 'jp26-dscf9017', blurb: 'Crow Castle, Korakuen and blossom over Kurashiki’s canal.' },
-    { id: 'jp26-kobe', trip: 'japan-spring-2026', title: 'Kobe & Himeji', native: '神戸', dates: '22 – 23 Mar 2026', cover: 'jp26-dscf9232', blurb: 'Sea of Japan surf, Himeji in spring and Kobe harbour at dusk.' },
+    { id: 'jp26-kobe', trip: 'japan-spring-2026', title: 'Kobe & Himeji', native: '神戸', dates: '22 – 23 Mar 2026', cover: 'jp26-dscf9232', blurb: 'Surf on the Tottori coast, Himeji in spring and Kobe harbour at dusk.' },
     { id: 'jp26-kyoto', trip: 'japan-spring-2026', title: 'Kyoto', native: '京都', dates: '25 Mar 2026', cover: 'jp26-dscf9317', blurb: 'Gion lanes, Yasaka Shrine and the first weeping cherries.' },
     { id: 'jp26-nagoya', trip: 'japan-spring-2026', title: 'Nagoya & Inuyama', native: '名古屋', dates: '26 Mar – 2 Apr 2026', cover: 'jp26-dscf9409', blurb: 'Two castles in blossom, a torii tunnel and sakura lit up at night.' },
     { id: 'jp26-suzuka', trip: 'japan-spring-2026', title: 'Suzuka Grand Prix', native: '鈴鹿', dates: '27 – 29 Mar 2026', cover: 'jp26-dscf3659', blurb: 'Three days trackside at the Japanese Grand Prix.' },
@@ -81,11 +81,11 @@ window.SITE = {
     { id: 'jp26-hokuriku', trip: 'japan-spring-2026', title: 'Kanazawa & Toyama', native: '北陸', dates: '4 – 6 Apr 2026', cover: 'jp26-dscf5244', blurb: 'Castle blossom, samurai lanes, the Alps over Toyama Bay and a fiery sunset.' },
     { id: 'jp26-nagano', trip: 'japan-spring-2026', title: 'Ueda & Nagano', native: '長野', dates: '7 – 9 Apr 2026', cover: 'jp26-dscf5757', blurb: 'Ueda Castle, Zenko-ji and blossom under blue mountain skies.' },
 
-    { id: 'cn26-chengdu', trip: 'china-jan-2026', title: 'Chengdu', native: '成都', dates: '23 – 24 Jan 2026', cover: 'cn26-dscf7323',
+    { id: 'cn26-chengdu', trip: 'china-jan-2026', title: 'Chengdu', native: '成都', dates: '23 – 24 Jan 2026', cover: 'cn26-dscf7307',
       blurb: 'Giant pandas, old lanes, teahouses and Anshun Bridge glowing over the river.' },
-    { id: 'cn26-chongqing', trip: 'china-jan-2026', title: 'Chongqing', native: '重庆', dates: '25 – 27 Jan 2026', cover: 'cn26-dscf8068',
+    { id: 'cn26-chongqing', trip: 'china-jan-2026', title: 'Chongqing', native: '重庆', dates: '25 – 27 Jan 2026', cover: 'cn26-dscf8067',
       blurb: 'A city stacked up its hillsides: painted stairways, Hongyadong at night and a train through a building.' },
-    { id: 'cn26-wulong', trip: 'china-jan-2026', title: 'Wulong', native: '武隆', dates: 'Jan 2026', cover: 'cn26-dscf8300',
+    { id: 'cn26-wulong', trip: 'china-jan-2026', title: 'Wulong', native: '武隆', dates: 'Jan 2026', cover: 'cn26-dscf8299',
       blurb: 'The Three Natural Bridges: limestone arches, misty gorges and an old post station far below.' },
 
     { id: 'jp25-wakayama', trip: 'japan-dec-2025', title: 'Wakayama', native: '和歌山', dates: '10 Dec 2025', cover: 'jp25-dscf6048',
@@ -111,20 +111,20 @@ window.SITE = {
       body: [
         'The trip began in mid-March with plum blossom at Osaka Castle and bare cherry branches. By the time it reached Kyoto, the first weeping cherries in Maruyama Park were opening.',
         { photo: 'jp26-dscf9317' },
-        'At the end of March came three days at Suzuka for the Japanese Grand Prix: panning shots through the esses and packed grandstands on race day.',
+        'At the end of March came three days at Suzuka for the Japanese Grand Prix: panning shots of the cars and packed grandstands on race day.',
         { photo: 'jp26-dscf3659' },
         'Then the blossom took over. In Toyama, boats drifted along the Matsukawa River under a tunnel of cherry trees, and in Nagano the trees were in full bloom under clear blue mountain skies.',
         { photo: 'jp26-dscf5757' },
       ] },
-    { id: 'chengdu-chongqing', collection: 'cn26-chongqing', cover: 'cn26-dscf8068', date: '2026-01-26', title: 'Pandas, Neon and Karst',
+    { id: 'chengdu-chongqing', collection: 'cn26-chongqing', cover: 'cn26-dscf8067', date: '2026-01-26', title: 'Pandas, Neon and Karst',
       excerpt: 'A winter week in Sichuan and Chongqing, from bamboo groves to a train through a building.',
       body: [
         'Chengdu started with the giant pandas: eating bamboo, napping on platforms and climbing trees. In the evening, Anshun Bridge glowed gold over the Jin River.',
-        { photo: 'cn26-dscf7323' },
+        { photo: 'cn26-dscf7307' },
         'Chongqing is a city stacked up its hillsides. Hongyadong, the cliffside complex, lights up layer after layer at night, and the Liziba monorail runs straight through an apartment block.',
-        { photo: 'cn26-dscf8068' },
+        { photo: 'cn26-dscf8067' },
         'A day out to Wulong brought a complete change of scene: limestone arches, misty gorges and an old post station far below the Three Natural Bridges.',
-        { photo: 'cn26-dscf8300' },
+        { photo: 'cn26-dscf8299' },
       ] },
     { id: 'kansai-autumn', collection: 'jp25-nachi', cover: 'jp25-dscf6188', date: '2025-12-12', title: 'Late Autumn in Kansai',
       excerpt: 'Dawn tuna auctions, sacred waterfalls and the last red maples of the year.',

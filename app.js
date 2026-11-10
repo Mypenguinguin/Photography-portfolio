@@ -23,7 +23,6 @@
   const places = S.places || {};
   const tripColor = (t) => (t && t.color) || '#46ccf2';
   const daysIn = (photos) => new Set(photos.map((p) => p.date && p.date.slice(0, 10)).filter(Boolean)).size;
-  const exifLine = (p) => (p.exif ? [p.exif.aperture, p.exif.shutter, p.exif.iso && `ISO ${p.exif.iso}`].filter(Boolean).join(' · ') : '');
   S.journal = S.journal.filter((p) => col[p.collection]); // stories wait for their destination's photos
   const posts = [...S.journal].sort((a, b) => b.date.localeCompare(a.date));
   const postById = Object.fromEntries(posts.map((p) => [p.id, p]));
@@ -164,40 +163,15 @@
     go(0).then(() => requestAnimationFrame(() => root.classList.add('is-ready')));
   }
 
-  /* ---------- Stats ---------- */
-  function initStats() {
-    const days = new Set(P.map((p) => p.date && p.date.slice(0, 10)).filter(Boolean)).size;
-    const values = {
-      countries: new Set(trips.map((t) => t.country)).size,
-      trips: trips.length,
-      destinations: S.collections.length,
-      days,
-      photos: P.length,
-    };
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (!e.isIntersecting) return;
-        io.unobserve(e.target);
-        const el = e.target, to = values[el.dataset.count], t0 = performance.now(), d = reduced ? 1 : 1400;
-        const tick = (t) => {
-          const k = Math.min(1, Math.max(0, (t - t0) / d));
-          el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3)));
-          if (k < 1) requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
-      });
-    }, { threshold: 0.6 });
-    $$('[data-count]').forEach((el) => io.observe(el));
-  }
-
-  /* ---------- Maps (Leaflet + OpenStreetMap, darkened in CSS) ---------- */
+  /* ---------- Maps (Leaflet + Esri Dark Gray Canvas, English labels) ---------- */
   const hasMap = () => typeof window.L !== 'undefined';
+  const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/';
   function addTiles(map) {
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      className: 'tiles-dark',
-      maxZoom: 18,
+    L.tileLayer(ESRI + 'World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Basemap &copy; Esri, HERE, Garmin, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 16,
     }).addTo(map);
+    L.tileLayer(ESRI + 'World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16, pane: 'shadowPane' }).addTo(map);
     map.attributionControl.setPrefix('');
   }
   const pinIcon = (label, color) => L.divIcon({
@@ -275,29 +249,16 @@
   function initTrips() {
     $('.tickets').innerHTML = trips.map((t, n) => {
       const list = tripCollections(t.id);
-      const ph = photosInTrip(t.id);
-      const strip = list.slice(0, 4).map((c) => c.cover);
       return `
-      <a class="ticket reveal" href="#/trip/${t.id}" style="--tc:${tripColor(t)}" data-cursor="Board">
+      <a class="ticket reveal" href="#/trip/${t.id}" style="--tc:${tripColor(t)};transition-delay:${(n % 2) * 0.08}s" data-cursor="Board">
         <div class="ticket-media">
           <div class="ticket-img" data-bg="${full(t.cover)}" style="background-color:${byId[t.cover].color}"></div>
-          <div class="ticket-strip">${strip.map((id) => `<img src="${thumb(id)}" alt="" loading="lazy">`).join('')}</div>
+          <span class="ticket-native">${esc(t.native)}</span>
         </div>
         <div class="ticket-body">
-          <div class="ticket-row"><span class="ticket-no">Trip ${String(trips.length - n).padStart(2, '0')}</span><span class="ticket-native">${esc(t.native)}</span></div>
+          <p class="ticket-no">Trip ${String(trips.length - n).padStart(2, '0')} &middot; ${esc(t.dates)}</p>
           <h3 class="ticket-title">${esc(t.title)}</h3>
-          <p class="ticket-dates">${esc(t.dates)}</p>
-          <ol class="ticket-route">${list.map((c) => `<li>${esc(c.title)}</li>`).join('')}</ol>
-          <p class="ticket-blurb">${esc(t.blurb)}</p>
-          <dl class="ticket-stats">
-            <div><dt>Stops</dt><dd>${list.length}</dd></div>
-            <div><dt>Days</dt><dd>${daysIn(ph) || '&ndash;'}</dd></div>
-            <div><dt>Frames</dt><dd>${ph.length}</dd></div>
-          </dl>
-        </div>
-        <div class="ticket-stub" aria-hidden="true">
-          <span class="stub-text">${esc(S.name)} &middot; ${esc(t.label || t.title)}</span>
-          <span class="stub-cta">Board &rarr;</span>
+          <p class="ticket-meta">${list.length} stops &middot; ${photosInTrip(t.id).length} photos <span class="ticket-go">&rarr;</span></p>
         </div>
       </a>`;
     }).join('');
@@ -396,7 +357,6 @@
         </div>
         <div class="tile-cap">
           ${showPlace && col[p.collection] ? `<span>${esc(placeOf(p))}</span>` : ''}<strong>${esc(p.title)}</strong>
-          ${exifLine(p) || p.date ? `<em class="t-data">${[p.date && fmtShort(p.date), exifLine(p)].filter(Boolean).join(' · ')}</em>` : ''}
         </div>
       </a>`).join('');
     $$('.tile', el).forEach((t) => { t._ar = byId[t.dataset.id].w / byId[t.dataset.id].h; tileIO.observe(t); });
@@ -404,7 +364,6 @@
     ro.observe(el);
     justify(el);
   }
-  const fmtShort = (iso) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   $$('.gallery').forEach((g) => g.classList.add('rows'));
 
   // Clicking a tile opens the lightbox on that gallery's photos
@@ -481,8 +440,8 @@
     $('.posts').innerHTML = posts.map((p, i) => {
       const cover = postCover(p);
       return `
-      <a class="post reveal" href="#/journal/${p.id}" data-cursor="Read" style="transition-delay:${i ? ((i - 1) % 3) * 0.08 : 0}s">
-        <div class="post-img"><img src="${i === 0 ? full(cover) : thumb(cover)}" alt="" loading="lazy"></div>
+      <a class="post reveal" href="#/journal/${p.id}" data-cursor="Read" style="transition-delay:${(i % 3) * 0.08}s">
+        <div class="post-img"><img src="${thumb(cover)}" alt="" loading="lazy"></div>
         <div class="post-body">
           <p class="post-meta"><b>${esc(placeOf({ collection: p.collection }))}</b><span>${fmtDate(p.date)}</span></p>
           <h3 class="post-title">${esc(p.title)}</h3>
@@ -574,7 +533,7 @@
       <div class="ov-map"></div>
       <div class="ov-facts reveal">
         <p class="eyebrow">The route</p>
-        <ol class="ov-stops">${list.map((c, k) => `<li><button type="button" data-ch="${c.id}" data-cursor><span>${String(k + 1).padStart(2, '0')}</span><b>${esc(c.title)}</b><small>${esc(c.dates)}</small></button></li>`).join('')}</ol>
+        <p class="ov-route">${list.map((c) => esc(c.title)).join(' &rarr; ')}</p>
         <dl class="ov-data">
           <div><dt>Frames</dt><dd>${items.length}</dd></div>
           <div><dt>Days</dt><dd>${daysIn(items) || '&ndash;'}</dd></div>
@@ -778,7 +737,7 @@
     const imprint = $('.lb-imprint', lb);
     const PLAY = 5000;
     let set = [], i = 0, isOpen = false, playing = false, playTimer = 0, lastFocus = null;
-    let showInfo = store.get('info') ? store.get('info') === '1' : innerWidth >= 1100;
+    let showInfo = store.get('info') === '1';
     let mini = null, miniPin = null;
 
     /* Details panel: where, when, camera */
@@ -1036,7 +995,6 @@
 
   /* ---------- Boot ---------- */
   initHero();
-  initStats();
   initTrips();
   initAtlas();
   initMenu();
